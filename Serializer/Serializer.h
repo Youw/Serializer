@@ -6,6 +6,7 @@
 #include <typeinfo>
 #include <memory>
 #include <stdexcept>
+#include <algorithm>
 
 #include "tinyxml2.h"
 
@@ -17,6 +18,11 @@ using std::endl;
 
 class Serializer {
 public:
+  static string makeTypeName(const char* s) {
+	std::string str(s);
+	remove_if(str.begin(), str.end(), isspace);
+	return '_' + str;
+  }
   virtual int save(const string& save_to, tinyxml2::XMLElement* parent_element = nullptr, tinyxml2::XMLDocument* parent_document = nullptr, const char* my_name = nullptr) const = 0;
   virtual int load(const string& load_from, tinyxml2::XMLElement* parent_element = nullptr, tinyxml2::XMLDocument* parent_document = nullptr, const char* my_name = nullptr) = 0;
 };
@@ -68,7 +74,7 @@ namespace saver{
 
 }
 
-#define REG_MEMBER(x) task(x, #x, ('_'+std::string(typeid(x).name())).c_str(), root_element, serialiser_document);
+#define REG_MEMBER(x) task(x, #x, (Serializer::makeTypeName(typeid(x).name())).c_str(), root_element, serialiser_document);
 
 #define SAVER(membs) \
 int save(const string& save_where, tinyxml2::XMLElement* parent_element = nullptr, tinyxml2::XMLDocument* parent_document = nullptr, const char* my_name = nullptr) const override { \
@@ -83,12 +89,12 @@ int save(const string& save_where, tinyxml2::XMLElement* parent_element = nullpt
     memory_cleaner.reset(serialiser_document);\
     }\
   if(!parent_element) {  \
-    std::string type_name(typeid(*this).name()); \
-    root_element = serialiser_document->NewElement(('_'+type_name).c_str());\
+    std::string type_name = Serializer::makeTypeName(typeid(*this).name()); \
+    root_element = serialiser_document->NewElement(type_name.c_str());\
     root_element = serialiser_document->LinkEndChild(root_element)->ToElement();\
     } else {\
-    std::string type_name(typeid(*this).name()); \
-    root_element = serialiser_document->NewElement(('_'+type_name).c_str());\
+    std::string type_name = Serializer::makeTypeName(typeid(*this).name()); \
+    root_element = serialiser_document->NewElement(type_name.c_str());\
     root_element = parent_element->LinkEndChild(root_element)->ToElement();\
     }\
   if (my_name) {\
@@ -110,12 +116,12 @@ int load(const string& load_from, tinyxml2::XMLElement* parent_element = nullptr
   tinyxml2::XMLElement* root_element = 0; \
   if(parent_document) {\
     serialiser_document = parent_document;\
-    } else {\
+  } else {\
     serialiser_document = new tinyxml2::XMLDocument();\
     memory_cleaner.reset(serialiser_document);\
-    }\
-  if(!parent_element) {  \
-    if(serialiser_document->LoadFile(load_from.c_str())!=XML_NO_ERROR) {\
+  }\
+  if(!parent_element) {\
+    if( (serialiser_document->LoadFile(load_from.c_str())) != XML_NO_ERROR) {\
 	  throw std::runtime_error("File: "+load_from+"can't be opened or incorrect.");\
 	} \
     root_element = serialiser_document->RootElement();\

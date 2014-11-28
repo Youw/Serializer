@@ -1646,12 +1646,12 @@ void XMLDocument::Clear()
 #endif
     
 #ifdef DEBUG
-//    if ( Error() == false ) {
-//        TIXMLASSERT( _elementPool.CurrentAllocs()   == _elementPool.Untracked() );
-//       TIXMLASSERT( _attributePool.CurrentAllocs() == _attributePool.Untracked() );
-//        TIXMLASSERT( _textPool.CurrentAllocs()      == _textPool.Untracked() );
-//        TIXMLASSERT( _commentPool.CurrentAllocs()   == _commentPool.Untracked() );
-//    }
+	if ( Error() == false ) {
+	  TIXMLASSERT( _elementPool.CurrentAllocs()   == _elementPool.Untracked() );
+      TIXMLASSERT( _attributePool.CurrentAllocs() == _attributePool.Untracked() );
+      TIXMLASSERT( _textPool.CurrentAllocs()      == _textPool.Untracked() );
+      TIXMLASSERT( _commentPool.CurrentAllocs()   == _commentPool.Untracked() );
+    }
 #endif
 }
 
