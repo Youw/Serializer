@@ -124,6 +124,9 @@ int load(const string& load_from, tinyxml2::XMLElement* parent_element = nullptr
       root_element = parent_element;\
     } else {\
       root_element = parent_element->FirstChildElement(my_name);\
+	  if(!root_element) {\
+		root_element = parent_element;\
+	  }\
     }\
   }\
   membs \
